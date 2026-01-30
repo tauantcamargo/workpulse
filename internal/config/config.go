@@ -24,6 +24,7 @@ type Config struct {
 	AutoAdvance              bool          `json:"auto_advance"`
 	PomodorosBeforeLongBreak int           `json:"pomodoros_before_long_break"`
 	DailyGoal                time.Duration `json:"daily_goal"`
+	Theme                    string        `json:"theme"`
 }
 
 func DefaultConfig() Config {
@@ -41,6 +42,7 @@ func DefaultConfig() Config {
 		AutoAdvance:              false,
 		PomodorosBeforeLongBreak: 4,
 		DailyGoal:                2 * time.Hour,
+		Theme:                    "dark",
 	}
 }
 
