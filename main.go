@@ -25,6 +25,8 @@ func main() {
 	waterDuration := flag.Duration("water", defaults.Water, "Water break duration (e.g., 2m)")
 	videoDuration := flag.Duration("video", defaults.Video, "Video break duration (e.g., 20m)")
 
+	autoAdvance := flag.Bool("auto", false, "Auto-advance to next mode after completion")
+
 	flag.Parse()
 
 	activityName := *activityFlag
@@ -47,7 +49,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	model := app.NewModel(activityName, store, durations)
+	opts := app.Options{
+		ActivityName: activityName,
+		Durations:    durations,
+		AutoAdvance:  *autoAdvance,
+	}
+
+	model := app.NewModel(opts, store)
 
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
