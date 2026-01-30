@@ -1,6 +1,7 @@
 package app
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -29,6 +30,18 @@ func (m Model) renderTimer() string {
 		m.Timer.Mode.Message,
 	))
 	content.WriteString("\n\n")
+
+	if m.Timer.Mode.Type == timer.ModeWork || m.Timer.Mode.Type == timer.ModeShortBreak || m.Timer.Mode.Type == timer.ModeLongBreak {
+		pomodoroText := "Pomodoro " + strconv.Itoa(m.PomodoroCount) + "/" + strconv.Itoa(DefaultPomodorosBeforeLongBreak)
+		pomodoroLine := lipgloss.NewStyle().
+			Align(lipgloss.Center).
+			Width(45).
+			Foreground(ui.Purple).
+			Bold(true).
+			Render("🍅 " + pomodoroText)
+		content.WriteString(pomodoroLine)
+		content.WriteString("\n\n")
+	}
 
 	if m.ActivityName != "" && m.Timer.Mode.Type == timer.ModeWork {
 		content.WriteString(ui.RenderActivity(m.ActivityName))
