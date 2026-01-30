@@ -112,3 +112,35 @@ func (s *Storage) GetSessionsByDate(date time.Time) []Session {
 
 	return sessions
 }
+
+func (s *Storage) GetWeekSessions() []Session {
+	now := time.Now()
+	weekday := int(now.Weekday())
+	if weekday == 0 {
+		weekday = 7
+	}
+	startOfWeek := now.AddDate(0, 0, -weekday+1).Truncate(24 * time.Hour)
+
+	var sessions []Session
+	for _, session := range s.data.Sessions {
+		if session.Started.After(startOfWeek) || session.Started.Equal(startOfWeek) {
+			sessions = append(sessions, session)
+		}
+	}
+
+	return sessions
+}
+
+func (s *Storage) GetMonthSessions() []Session {
+	now := time.Now()
+	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+
+	var sessions []Session
+	for _, session := range s.data.Sessions {
+		if session.Started.After(startOfMonth) || session.Started.Equal(startOfMonth) {
+			sessions = append(sessions, session)
+		}
+	}
+
+	return sessions
+}
