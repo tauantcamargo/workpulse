@@ -4,6 +4,26 @@ import "time"
 
 type ModeType string
 
+type DurationConfig struct {
+	Work       time.Duration
+	ShortBreak time.Duration
+	LongBreak  time.Duration
+	Walk       time.Duration
+	Water      time.Duration
+	Video      time.Duration
+}
+
+func DefaultDurations() DurationConfig {
+	return DurationConfig{
+		Work:       25 * time.Minute,
+		ShortBreak: 5 * time.Minute,
+		LongBreak:  15 * time.Minute,
+		Walk:       10 * time.Minute,
+		Water:      2 * time.Minute,
+		Video:      20 * time.Minute,
+	}
+}
+
 const (
 	ModeWork       ModeType = "work"
 	ModeShortBreak ModeType = "short_break"
@@ -99,5 +119,78 @@ func NextMode(current ModeType) Mode {
 		return DefaultModes[ModeWork]
 	default:
 		return DefaultModes[ModeWork]
+	}
+}
+
+type Modes struct {
+	modes map[ModeType]Mode
+}
+
+func NewModes(cfg DurationConfig) *Modes {
+	return &Modes{
+		modes: map[ModeType]Mode{
+			ModeWork: {
+				Type:     ModeWork,
+				Name:     "WORK",
+				Duration: cfg.Work,
+				Emoji:    "🎯",
+				Message:  "Stay focused, you got this!",
+			},
+			ModeShortBreak: {
+				Type:     ModeShortBreak,
+				Name:     "SHORT BREAK",
+				Duration: cfg.ShortBreak,
+				Emoji:    "☕",
+				Message:  "Take a breather, you've earned it!",
+			},
+			ModeLongBreak: {
+				Type:     ModeLongBreak,
+				Name:     "LONG BREAK",
+				Duration: cfg.LongBreak,
+				Emoji:    "🌴",
+				Message:  "Time to relax and recharge!",
+			},
+			ModeWalk: {
+				Type:     ModeWalk,
+				Name:     "WALK",
+				Duration: cfg.Walk,
+				Emoji:    "🚶",
+				Message:  "Get moving, stretch those legs!",
+			},
+			ModeWater: {
+				Type:     ModeWater,
+				Name:     "WATER",
+				Duration: cfg.Water,
+				Emoji:    "💧",
+				Message:  "Stay hydrated!",
+			},
+			ModeVideo: {
+				Type:     ModeVideo,
+				Name:     "VIDEO",
+				Duration: cfg.Video,
+				Emoji:    "🎬",
+				Message:  "Enjoy your video break!",
+			},
+		},
+	}
+}
+
+func (m *Modes) Get(t ModeType) Mode {
+	if mode, ok := m.modes[t]; ok {
+		return mode
+	}
+	return m.modes[ModeWork]
+}
+
+func (m *Modes) Next(current ModeType) Mode {
+	switch current {
+	case ModeWork:
+		return m.modes[ModeShortBreak]
+	case ModeShortBreak:
+		return m.modes[ModeWork]
+	case ModeLongBreak:
+		return m.modes[ModeWork]
+	default:
+		return m.modes[ModeWork]
 	}
 }
