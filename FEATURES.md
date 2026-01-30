@@ -66,6 +66,24 @@ workpulse config --pomodoros 6
 workpulse config --reset
 ```
 
+### Export Sessions
+Export session history to CSV for external analysis:
+```bash
+# Export all sessions to stdout
+workpulse export
+
+# Export to file
+workpulse export -o sessions.csv
+
+# Filter by period
+workpulse export --period today
+workpulse export --period week
+workpulse export --period month
+workpulse export --period all    # default
+```
+
+CSV columns: `mode`, `activity`, `started`, `duration_minutes`, `completed`
+
 ### Notifications
 - Desktop notifications when timer completes
 - Sound alert on macOS (Glass.aiff)
@@ -95,7 +113,7 @@ workpulse config --reset
 
 ### Planned
 - [x] Quiet mode (disable sound) - `workpulse config --sound=false`
+- [x] Export sessions to CSV - `workpulse export`
 - [ ] Custom notification sounds
-- [ ] Export sessions to CSV
 - [ ] Themes (dark/light/custom)
 - [ ] Streaks and goals
