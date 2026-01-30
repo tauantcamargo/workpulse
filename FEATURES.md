@@ -37,10 +37,12 @@ workpulse --auto
 - Pre-set activity via CLI: `workpulse -a "task name"`
 - Activities saved to `~/.workpulse/activities.json`
 
-### Daily Summary
-- Press `d` to view today's completed sessions
+### Statistics Summary
+- Press `d` to view summary (cycles through Daily → Weekly → Monthly)
 - Shows time spent per mode
 - Displays total focused time
+- Press `d` or `tab` while in summary to switch periods
+- Press `esc` to return to timer
 
 ### Notifications
 - Desktop notifications when timer completes
@@ -60,7 +62,7 @@ workpulse --auto
 | `p` | Pause timer |
 | `r` | Reset timer |
 | `n` | Next mode |
-| `d` | Daily summary |
+| `d` | Stats summary (cycles periods) |
 | `q` | Quit |
 | `1-6` | Quick switch modes |
 | `w/b/l` | Work/Break/Long break |
@@ -68,9 +70,6 @@ workpulse --auto
 ---
 
 ## Roadmap
-
-### In Progress
-- [ ] Weekly and monthly stats view
 
 ### Planned
 - [ ] Quiet mode (disable sound)
