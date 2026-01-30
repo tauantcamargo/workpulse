@@ -13,6 +13,14 @@ const (
 	ViewActivityInput
 )
 
+type SummaryPeriod int
+
+const (
+	PeriodDaily SummaryPeriod = iota
+	PeriodWeekly
+	PeriodMonthly
+)
+
 const DefaultPomodorosBeforeLongBreak = 4
 
 type Options struct {
@@ -28,6 +36,7 @@ type Model struct {
 	AutoAdvance   bool
 	PomodoroCount int
 	ViewState     ViewState
+	SummaryPeriod SummaryPeriod
 	InputBuffer   string
 	Storage       *storage.Storage
 	Width         int
@@ -44,6 +53,7 @@ func NewModel(opts Options, store *storage.Storage) Model {
 		AutoAdvance:   opts.AutoAdvance,
 		PomodoroCount: 0,
 		ViewState:     ViewTimer,
+		SummaryPeriod: PeriodDaily,
 		InputBuffer:   "",
 		Storage:       store,
 		Width:         50,
@@ -59,6 +69,7 @@ func (m Model) SetTimer(t timer.Timer) Model {
 		AutoAdvance:   m.AutoAdvance,
 		PomodoroCount: m.PomodoroCount,
 		ViewState:     m.ViewState,
+		SummaryPeriod: m.SummaryPeriod,
 		InputBuffer:   m.InputBuffer,
 		Storage:       m.Storage,
 		Width:         m.Width,
@@ -74,6 +85,7 @@ func (m Model) SetActivityName(name string) Model {
 		AutoAdvance:   m.AutoAdvance,
 		PomodoroCount: m.PomodoroCount,
 		ViewState:     m.ViewState,
+		SummaryPeriod: m.SummaryPeriod,
 		InputBuffer:   m.InputBuffer,
 		Storage:       m.Storage,
 		Width:         m.Width,
@@ -89,6 +101,7 @@ func (m Model) SetViewState(state ViewState) Model {
 		AutoAdvance:   m.AutoAdvance,
 		PomodoroCount: m.PomodoroCount,
 		ViewState:     state,
+		SummaryPeriod: m.SummaryPeriod,
 		InputBuffer:   m.InputBuffer,
 		Storage:       m.Storage,
 		Width:         m.Width,
@@ -104,6 +117,7 @@ func (m Model) SetInputBuffer(input string) Model {
 		AutoAdvance:   m.AutoAdvance,
 		PomodoroCount: m.PomodoroCount,
 		ViewState:     m.ViewState,
+		SummaryPeriod: m.SummaryPeriod,
 		InputBuffer:   input,
 		Storage:       m.Storage,
 		Width:         m.Width,
@@ -119,6 +133,7 @@ func (m Model) SetDimensions(width, height int) Model {
 		AutoAdvance:   m.AutoAdvance,
 		PomodoroCount: m.PomodoroCount,
 		ViewState:     m.ViewState,
+		SummaryPeriod: m.SummaryPeriod,
 		InputBuffer:   m.InputBuffer,
 		Storage:       m.Storage,
 		Width:         width,
@@ -134,11 +149,33 @@ func (m Model) SetPomodoroCount(count int) Model {
 		AutoAdvance:   m.AutoAdvance,
 		PomodoroCount: count,
 		ViewState:     m.ViewState,
+		SummaryPeriod: m.SummaryPeriod,
 		InputBuffer:   m.InputBuffer,
 		Storage:       m.Storage,
 		Width:         m.Width,
 		Height:        m.Height,
 	}
+}
+
+func (m Model) SetSummaryPeriod(period SummaryPeriod) Model {
+	return Model{
+		Timer:         m.Timer,
+		Modes:         m.Modes,
+		ActivityName:  m.ActivityName,
+		AutoAdvance:   m.AutoAdvance,
+		PomodoroCount: m.PomodoroCount,
+		ViewState:     m.ViewState,
+		SummaryPeriod: period,
+		InputBuffer:   m.InputBuffer,
+		Storage:       m.Storage,
+		Width:         m.Width,
+		Height:        m.Height,
+	}
+}
+
+func (m Model) NextSummaryPeriod() Model {
+	next := (m.SummaryPeriod + 1) % 3
+	return m.SetSummaryPeriod(next)
 }
 
 func (m Model) IncrementPomodoro() Model {
