@@ -136,7 +136,7 @@ func (m Model) startTimer() (tea.Model, tea.Cmd) {
 }
 
 func (m Model) nextMode() (tea.Model, tea.Cmd) {
-	nextMode := m.Modes.Next(m.Timer.Mode.Type)
+	nextMode := m.Modes.NextWithPomodoro(m.Timer.Mode.Type, m.PomodoroCount, DefaultPomodorosBeforeLongBreak)
 	newTimer := m.Timer.SetMode(nextMode)
 	return m.SetTimer(newTimer), nil
 }
@@ -156,6 +156,13 @@ func (m Model) handleTick() (tea.Model, tea.Cmd) {
 
 	if newTimer.Completed && !m.Timer.Completed {
 		newModel := m.SetTimer(newTimer)
+
+		if m.Timer.Mode.Type == timer.ModeWork {
+			newModel = newModel.IncrementPomodoro()
+		} else if m.Timer.Mode.Type == timer.ModeLongBreak {
+			newModel = newModel.ResetPomodoroCount()
+		}
+
 		if m.Storage != nil {
 			m.Storage.SaveSession(
 				string(m.Timer.Mode.Type),
@@ -181,7 +188,7 @@ func (m Model) handleTick() (tea.Model, tea.Cmd) {
 }
 
 func (m Model) handleAutoAdvance() (tea.Model, tea.Cmd) {
-	nextMode := m.Modes.Next(m.Timer.Mode.Type)
+	nextMode := m.Modes.NextWithPomodoro(m.Timer.Mode.Type, m.PomodoroCount, DefaultPomodorosBeforeLongBreak)
 	newTimer := m.Timer.SetMode(nextMode).Start()
 	return m.SetTimer(newTimer), timer.Tick()
 }
