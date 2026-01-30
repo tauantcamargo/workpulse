@@ -15,12 +15,62 @@ import (
 )
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "config" {
-		runConfigCommand(os.Args[2:])
-		return
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "config":
+			runConfigCommand(os.Args[2:])
+			return
+		case "export":
+			runExportCommand(os.Args[2:])
+			return
+		}
 	}
 
 	runTimerApp()
+}
+
+func runExportCommand(args []string) {
+	exportCmd := flag.NewFlagSet("export", flag.ExitOnError)
+
+	outputFlag := exportCmd.String("o", "", "Output file path (default: stdout)")
+	periodFlag := exportCmd.String("period", "all", "Period to export: all, today, week, month")
+
+	exportCmd.Parse(args)
+
+	store, err := storage.New()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error initializing storage: %v\n", err)
+		os.Exit(1)
+	}
+
+	var sessions []storage.Session
+	switch *periodFlag {
+	case "today":
+		sessions = store.GetTodaySessions()
+	case "week":
+		sessions = store.GetWeekSessions()
+	case "month":
+		sessions = store.GetMonthSessions()
+	default:
+		sessions = store.GetAllSessions()
+	}
+
+	if len(sessions) == 0 {
+		fmt.Println("No sessions found for the specified period.")
+		return
+	}
+
+	csvData := store.ExportCSV(sessions)
+
+	if *outputFlag != "" {
+		if err := os.WriteFile(*outputFlag, []byte(csvData), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing file: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Exported %d sessions to %s\n", len(sessions), *outputFlag)
+	} else {
+		fmt.Print(csvData)
+	}
 }
 
 func runConfigCommand(args []string) {
