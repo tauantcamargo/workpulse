@@ -18,3 +18,7 @@ debug/
 # Test coverage
 coverage.out
 coverage.html
+
+# Docs
+TESTING.md
+CLAUDE.md
