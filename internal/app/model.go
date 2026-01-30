@@ -13,10 +13,17 @@ const (
 	ViewActivityInput
 )
 
+type Options struct {
+	ActivityName string
+	Durations    timer.DurationConfig
+	AutoAdvance  bool
+}
+
 type Model struct {
 	Timer        timer.Timer
 	Modes        *timer.Modes
 	ActivityName string
+	AutoAdvance  bool
 	ViewState    ViewState
 	InputBuffer  string
 	Storage      *storage.Storage
@@ -24,13 +31,14 @@ type Model struct {
 	Height       int
 }
 
-func NewModel(activityName string, store *storage.Storage, durations timer.DurationConfig) Model {
-	modes := timer.NewModes(durations)
+func NewModel(opts Options, store *storage.Storage) Model {
+	modes := timer.NewModes(opts.Durations)
 	mode := modes.Get(timer.ModeWork)
 	return Model{
 		Timer:        timer.New(mode),
 		Modes:        modes,
-		ActivityName: activityName,
+		ActivityName: opts.ActivityName,
+		AutoAdvance:  opts.AutoAdvance,
 		ViewState:    ViewTimer,
 		InputBuffer:  "",
 		Storage:      store,
@@ -44,6 +52,7 @@ func (m Model) SetTimer(t timer.Timer) Model {
 		Timer:        t,
 		Modes:        m.Modes,
 		ActivityName: m.ActivityName,
+		AutoAdvance:  m.AutoAdvance,
 		ViewState:    m.ViewState,
 		InputBuffer:  m.InputBuffer,
 		Storage:      m.Storage,
@@ -57,6 +66,7 @@ func (m Model) SetActivityName(name string) Model {
 		Timer:        m.Timer,
 		Modes:        m.Modes,
 		ActivityName: name,
+		AutoAdvance:  m.AutoAdvance,
 		ViewState:    m.ViewState,
 		InputBuffer:  m.InputBuffer,
 		Storage:      m.Storage,
@@ -70,6 +80,7 @@ func (m Model) SetViewState(state ViewState) Model {
 		Timer:        m.Timer,
 		Modes:        m.Modes,
 		ActivityName: m.ActivityName,
+		AutoAdvance:  m.AutoAdvance,
 		ViewState:    state,
 		InputBuffer:  m.InputBuffer,
 		Storage:      m.Storage,
@@ -83,6 +94,7 @@ func (m Model) SetInputBuffer(input string) Model {
 		Timer:        m.Timer,
 		Modes:        m.Modes,
 		ActivityName: m.ActivityName,
+		AutoAdvance:  m.AutoAdvance,
 		ViewState:    m.ViewState,
 		InputBuffer:  input,
 		Storage:      m.Storage,
@@ -96,6 +108,7 @@ func (m Model) SetDimensions(width, height int) Model {
 		Timer:        m.Timer,
 		Modes:        m.Modes,
 		ActivityName: m.ActivityName,
+		AutoAdvance:  m.AutoAdvance,
 		ViewState:    m.ViewState,
 		InputBuffer:  m.InputBuffer,
 		Storage:      m.Storage,
