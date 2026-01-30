@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/tauantcamargo/workpulse/internal/storage"
 	"github.com/tauantcamargo/workpulse/internal/timer"
 	"github.com/tauantcamargo/workpulse/internal/ui"
 )
@@ -103,8 +104,21 @@ func (m Model) renderSummary() string {
 	stats := make(map[string]int)
 	totalMinutes := 0
 
+	var periodTitle string
 	if m.Storage != nil {
-		sessions := m.Storage.GetTodaySessions()
+		var sessions []storage.Session
+		switch m.SummaryPeriod {
+		case PeriodWeekly:
+			sessions = m.Storage.GetWeekSessions()
+			periodTitle = "Weekly"
+		case PeriodMonthly:
+			sessions = m.Storage.GetMonthSessions()
+			periodTitle = "Monthly"
+		default:
+			sessions = m.Storage.GetTodaySessions()
+			periodTitle = "Daily"
+		}
+
 		for _, session := range sessions {
 			minutes := int(session.Duration.Minutes())
 			stats[session.Mode] += minutes
@@ -114,7 +128,7 @@ func (m Model) renderSummary() string {
 
 	var content strings.Builder
 	content.WriteString("\n")
-	content.WriteString(ui.RenderDailySummary(stats, totalMinutes))
+	content.WriteString(ui.RenderSummary(stats, totalMinutes, periodTitle))
 	content.WriteString("\n")
 
 	return ui.ContainerStyle.Render(content.String())
