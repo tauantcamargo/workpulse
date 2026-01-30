@@ -17,6 +17,15 @@ workpulse --work 30m --short-break 10m --long-break 20m
 workpulse --walk 15m --water 3m --video 25m
 ```
 
+### Auto-Advance
+Automatically start the next timer mode after completion:
+```bash
+workpulse --auto
+```
+- Work completes → Short Break starts automatically
+- Short Break completes → Work starts automatically
+- 2-second delay before advancing
+
 ### Activity Tracking
 - Prompt for activity name when starting work sessions
 - Pre-set activity via CLI: `workpulse -a "task name"`
@@ -55,7 +64,6 @@ workpulse --walk 15m --water 3m --video 25m
 ## Roadmap
 
 ### In Progress
-- [ ] Auto-advance to next mode after completion
 - [ ] Session counter (Pomodoro X/4)
 - [ ] Weekly and monthly stats view
 
