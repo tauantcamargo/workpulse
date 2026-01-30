@@ -44,10 +44,22 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case ViewActivityInput:
 		return m.handleActivityInput(msg)
 	case ViewSummary:
-		return m.SetViewState(ViewTimer), nil
+		return m.handleSummaryKeys(msg)
 	default:
 		return m.handleTimerKeys(msg)
 	}
+}
+
+func (m Model) handleSummaryKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "q", "ctrl+c":
+		return m, tea.Quit
+	case "d", "tab", "right", "left":
+		return m.NextSummaryPeriod(), nil
+	case "esc", "enter":
+		return m.SetViewState(ViewTimer).SetSummaryPeriod(PeriodDaily), nil
+	}
+	return m, nil
 }
 
 func (m Model) handleActivityInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
