@@ -84,6 +84,22 @@ workpulse export --period all    # default
 
 CSV columns: `mode`, `activity`, `started`, `duration_minutes`, `completed`
 
+### Streaks and Goals
+Track daily focus time goals and consecutive day streaks:
+```bash
+# View current stats
+workpulse stats
+
+# Set daily focus time goal
+workpulse config --daily-goal 2h
+workpulse config --daily-goal 90m
+```
+
+Stats include:
+- Today's focus time and goal progress
+- Current streak (consecutive days with work sessions)
+- Longest streak achieved
+
 ### Notifications
 - Desktop notifications when timer completes
 - Sound alert on macOS (Glass.aiff)
@@ -114,6 +130,6 @@ CSV columns: `mode`, `activity`, `started`, `duration_minutes`, `completed`
 ### Planned
 - [x] Quiet mode (disable sound) - `workpulse config --sound=false`
 - [x] Export sessions to CSV - `workpulse export`
+- [x] Streaks and goals - `workpulse stats`
 - [ ] Custom notification sounds
 - [ ] Themes (dark/light/custom)
-- [ ] Streaks and goals
