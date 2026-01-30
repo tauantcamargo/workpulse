@@ -12,6 +12,8 @@ import (
 
 type NotifyMsg struct{}
 
+type AutoAdvanceMsg struct{}
+
 func (m Model) Init() tea.Cmd {
 	return nil
 }
@@ -29,6 +31,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case NotifyMsg:
 		return m, nil
+
+	case AutoAdvanceMsg:
+		return m.handleAutoAdvance()
 	}
 
 	return m, nil
@@ -159,13 +164,32 @@ func (m Model) handleTick() (tea.Model, tea.Cmd) {
 				time.Now().Add(-m.Timer.Mode.Duration),
 			)
 		}
-		return newModel, tea.Batch(
+
+		cmds := []tea.Cmd{
 			sendNotification(m.Timer.Mode.Name),
 			playSound(),
-		)
+		}
+
+		if m.AutoAdvance {
+			cmds = append(cmds, scheduleAutoAdvance())
+		}
+
+		return newModel, tea.Batch(cmds...)
 	}
 
 	return m.SetTimer(newTimer), timer.Tick()
+}
+
+func (m Model) handleAutoAdvance() (tea.Model, tea.Cmd) {
+	nextMode := m.Modes.Next(m.Timer.Mode.Type)
+	newTimer := m.Timer.SetMode(nextMode).Start()
+	return m.SetTimer(newTimer), timer.Tick()
+}
+
+func scheduleAutoAdvance() tea.Cmd {
+	return tea.Tick(2*time.Second, func(t time.Time) tea.Msg {
+		return AutoAdvanceMsg{}
+	})
 }
 
 func sendNotification(modeName string) tea.Cmd {
