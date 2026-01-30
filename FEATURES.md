@@ -111,6 +111,16 @@ Stats include:
 - Centered terminal UI with rounded borders
 - Running/paused status indicators
 
+### Themes
+Customize the color scheme with built-in themes:
+```bash
+# Set theme
+workpulse config --theme dark      # Default dark theme
+workpulse config --theme light     # Light theme
+workpulse config --theme dracula   # Dracula color scheme
+workpulse config --theme nord      # Nord color scheme
+```
+
 ### Keyboard Controls
 | Key | Action |
 |-----|--------|
@@ -131,5 +141,5 @@ Stats include:
 - [x] Quiet mode (disable sound) - `workpulse config --sound=false`
 - [x] Export sessions to CSV - `workpulse export`
 - [x] Streaks and goals - `workpulse stats`
+- [x] Themes (dark/light/custom) - `workpulse config --theme <name>`
 - [ ] Custom notification sounds
-- [ ] Themes (dark/light/custom)
