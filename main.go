@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,6 +13,7 @@ import (
 	"github.com/tauantcamargo/workpulse/internal/config"
 	"github.com/tauantcamargo/workpulse/internal/storage"
 	"github.com/tauantcamargo/workpulse/internal/timer"
+	"github.com/tauantcamargo/workpulse/internal/ui"
 )
 
 func main() {
@@ -136,6 +138,7 @@ func runConfigCommand(args []string) {
 	autoFlag := configCmd.String("auto", "", "Enable/disable auto-advance (true/false)")
 	pomodorosFlag := configCmd.Int("pomodoros", 0, "Set pomodoros before long break (e.g., 4)")
 	dailyGoalFlag := configCmd.Duration("daily-goal", 0, "Set daily focus time goal (e.g., 2h, 90m)")
+	themeFlag := configCmd.String("theme", "", "Set theme (dark, light, dracula, nord)")
 	resetFlag := configCmd.Bool("reset", false, "Reset to default configuration")
 
 	configCmd.Parse(args)
@@ -203,6 +206,22 @@ func runConfigCommand(args []string) {
 		cfg.DailyGoal = *dailyGoalFlag
 		modified = true
 	}
+	if *themeFlag != "" {
+		validThemes := ui.AvailableThemes()
+		isValid := false
+		for _, t := range validThemes {
+			if *themeFlag == t {
+				isValid = true
+				break
+			}
+		}
+		if !isValid {
+			fmt.Fprintf(os.Stderr, "Invalid theme: %s. Available: %s\n", *themeFlag, strings.Join(validThemes, ", "))
+			os.Exit(1)
+		}
+		cfg.Theme = *themeFlag
+		modified = true
+	}
 
 	if modified {
 		if err := config.Save(cfg); err != nil {
@@ -240,9 +259,17 @@ func printConfig(cfg config.Config) {
 	fmt.Println("Goals:")
 	fmt.Printf("  daily-goal: %s\n", config.FormatDuration(cfg.DailyGoal))
 	fmt.Println()
+	fmt.Println("Appearance:")
+	themeName := cfg.Theme
+	if themeName == "" {
+		themeName = "dark"
+	}
+	fmt.Printf("  theme:      %s (available: %s)\n", themeName, strings.Join(ui.AvailableThemes(), ", "))
+	fmt.Println()
 	fmt.Println("Usage:")
 	fmt.Println("  workpulse config --work 30m")
 	fmt.Println("  workpulse config --daily-goal 2h")
+	fmt.Println("  workpulse config --theme dracula")
 	fmt.Println("  workpulse config --sound=false")
 	fmt.Println("  workpulse config --reset")
 }
@@ -261,6 +288,12 @@ func formatBool(b bool) string {
 
 func runTimerApp() {
 	cfg, _ := config.Load()
+
+	themeName := cfg.Theme
+	if themeName == "" {
+		themeName = "dark"
+	}
+	ui.SetTheme(ui.GetTheme(themeName))
 
 	defaults := timer.DurationConfig{
 		Work:       cfg.Durations.Work,
