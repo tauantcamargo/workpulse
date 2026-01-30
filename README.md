@@ -34,6 +34,28 @@ A minimal, beautiful terminal-based Pomodoro timer built in Go.
 
 ## Installation
 
+### Quick Install (Recommended)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/tauantcamargo/workpulse/main/scripts/install.sh | sh
+```
+
+### Homebrew (macOS/Linux)
+
+```bash
+brew install tauantcamargo/tap/workpulse
+```
+
+### Download Binary
+
+Download the latest binary for your platform from the [Releases](https://github.com/tauantcamargo/workpulse/releases) page.
+
+### Go Install
+
+```bash
+go install github.com/tauantcamargo/workpulse@latest
+```
+
 ### From Source
 
 ```bash
@@ -41,12 +63,6 @@ git clone https://github.com/tauantcamargo/workpulse.git
 cd workpulse
 go build -o workpulse
 ./workpulse
-```
-
-### Go Install
-
-```bash
-go install github.com/tauantcamargo/workpulse@latest
 ```
 
 ## Usage

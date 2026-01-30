@@ -16,6 +16,12 @@ import (
 	"github.com/tauantcamargo/workpulse/internal/ui"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -28,10 +34,37 @@ func main() {
 		case "stats":
 			runStatsCommand()
 			return
+		case "version", "--version", "-v":
+			fmt.Printf("workpulse %s (commit: %s, built: %s)\n", version, commit, date)
+			return
+		case "--help", "-h", "help":
+			printHelp()
+			return
 		}
 	}
 
 	runTimerApp()
+}
+
+func printHelp() {
+	fmt.Println("WorkPulse - A minimal, beautiful terminal-based Pomodoro timer")
+	fmt.Println()
+	fmt.Println("Usage:")
+	fmt.Println("  workpulse                    Start the timer")
+	fmt.Println("  workpulse -a <activity>      Start with pre-set activity name")
+	fmt.Println("  workpulse config             View/edit configuration")
+	fmt.Println("  workpulse stats              View productivity stats")
+	fmt.Println("  workpulse export             Export sessions to CSV")
+	fmt.Println("  workpulse version            Show version information")
+	fmt.Println()
+	fmt.Println("Timer Flags:")
+	fmt.Println("  -a, --activity <name>        Set activity name for work sessions")
+	fmt.Println("  --work <duration>            Work session duration (e.g., 25m)")
+	fmt.Println("  --short-break <duration>     Short break duration (e.g., 5m)")
+	fmt.Println("  --long-break <duration>      Long break duration (e.g., 15m)")
+	fmt.Println("  --auto                       Auto-advance to next mode")
+	fmt.Println()
+	fmt.Println("For more information, visit: https://github.com/tauantcamargo/workpulse")
 }
 
 func runStatsCommand() {
