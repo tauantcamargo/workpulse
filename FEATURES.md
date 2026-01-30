@@ -44,6 +44,28 @@ workpulse --auto
 - Press `d` or `tab` while in summary to switch periods
 - Press `esc` to return to timer
 
+### Configuration
+Persistent configuration stored at `~/.workpulse/config.json`:
+```bash
+# View current configuration
+workpulse config --list
+
+# Set durations
+workpulse config --work 30m --short-break 10m
+workpulse config --long-break 20m --walk 15m
+
+# Toggle settings
+workpulse config --sound=false    # Disable sound
+workpulse config --notify=true    # Enable notifications
+workpulse config --auto=true      # Enable auto-advance
+
+# Set pomodoros before long break
+workpulse config --pomodoros 6
+
+# Reset to defaults
+workpulse config --reset
+```
+
 ### Notifications
 - Desktop notifications when timer completes
 - Sound alert on macOS (Glass.aiff)
@@ -72,7 +94,7 @@ workpulse --auto
 ## Roadmap
 
 ### Planned
-- [ ] Quiet mode (disable sound)
+- [x] Quiet mode (disable sound) - `workpulse config --sound=false`
 - [ ] Custom notification sounds
 - [ ] Export sessions to CSV
 - [ ] Themes (dark/light/custom)
