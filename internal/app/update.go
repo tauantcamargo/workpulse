@@ -131,13 +131,13 @@ func (m Model) startTimer() (tea.Model, tea.Cmd) {
 }
 
 func (m Model) nextMode() (tea.Model, tea.Cmd) {
-	nextMode := timer.NextMode(m.Timer.Mode.Type)
+	nextMode := m.Modes.Next(m.Timer.Mode.Type)
 	newTimer := m.Timer.SetMode(nextMode)
 	return m.SetTimer(newTimer), nil
 }
 
 func (m Model) switchMode(modeType timer.ModeType) (tea.Model, tea.Cmd) {
-	mode := timer.GetMode(modeType)
+	mode := m.Modes.Get(modeType)
 	newTimer := m.Timer.SetMode(mode)
 	return m.SetTimer(newTimer), nil
 }
