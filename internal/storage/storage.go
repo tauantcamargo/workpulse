@@ -198,3 +198,91 @@ func formatFloat(f float64) string {
 	}
 	return fmt.Sprintf("%.2f", f)
 }
+
+func (s *Storage) GetTodayWorkDuration() time.Duration {
+	var total time.Duration
+	for _, session := range s.GetTodaySessions() {
+		if session.Mode == "work" && session.Completed {
+			total += session.Duration
+		}
+	}
+	return total
+}
+
+func (s *Storage) GetStreak() int {
+	if len(s.data.Sessions) == 0 {
+		return 0
+	}
+
+	daysWithWork := make(map[string]bool)
+	for _, session := range s.data.Sessions {
+		if session.Mode == "work" && session.Completed {
+			dayKey := session.Started.Format("2006-01-02")
+			daysWithWork[dayKey] = true
+		}
+	}
+
+	if len(daysWithWork) == 0 {
+		return 0
+	}
+
+	streak := 0
+	today := time.Now()
+
+	for i := 0; i < 365; i++ {
+		checkDate := today.AddDate(0, 0, -i)
+		dayKey := checkDate.Format("2006-01-02")
+
+		if daysWithWork[dayKey] {
+			streak++
+		} else if i > 0 {
+			break
+		}
+	}
+
+	return streak
+}
+
+func (s *Storage) GetLongestStreak() int {
+	if len(s.data.Sessions) == 0 {
+		return 0
+	}
+
+	daysWithWork := make(map[string]bool)
+	var minDate, maxDate time.Time
+
+	for _, session := range s.data.Sessions {
+		if session.Mode == "work" && session.Completed {
+			dayKey := session.Started.Format("2006-01-02")
+			daysWithWork[dayKey] = true
+
+			if minDate.IsZero() || session.Started.Before(minDate) {
+				minDate = session.Started
+			}
+			if maxDate.IsZero() || session.Started.After(maxDate) {
+				maxDate = session.Started
+			}
+		}
+	}
+
+	if len(daysWithWork) == 0 {
+		return 0
+	}
+
+	longest := 0
+	current := 0
+
+	for d := minDate; !d.After(maxDate.AddDate(0, 0, 1)); d = d.AddDate(0, 0, 1) {
+		dayKey := d.Format("2006-01-02")
+		if daysWithWork[dayKey] {
+			current++
+			if current > longest {
+				longest = current
+			}
+		} else {
+			current = 0
+		}
+	}
+
+	return longest
+}
