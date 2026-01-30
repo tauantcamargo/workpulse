@@ -23,10 +23,58 @@ func main() {
 		case "export":
 			runExportCommand(os.Args[2:])
 			return
+		case "stats":
+			runStatsCommand()
+			return
 		}
 	}
 
 	runTimerApp()
+}
+
+func runStatsCommand() {
+	cfg, _ := config.Load()
+
+	store, err := storage.New()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error initializing storage: %v\n", err)
+		os.Exit(1)
+	}
+
+	dailyGoal := cfg.DailyGoal
+	if dailyGoal == 0 {
+		dailyGoal = 2 * time.Hour
+	}
+
+	todayWork := store.GetTodayWorkDuration()
+	streak := store.GetStreak()
+	longestStreak := store.GetLongestStreak()
+	goalProgress := float64(todayWork) / float64(dailyGoal) * 100
+	if goalProgress > 100 {
+		goalProgress = 100
+	}
+
+	fmt.Println()
+	fmt.Println("WorkPulse Stats")
+	fmt.Println("===============")
+	fmt.Println()
+	fmt.Println("Today:")
+	fmt.Printf("  Focus time:  %s\n", config.FormatDuration(todayWork))
+	fmt.Printf("  Daily goal:  %s\n", config.FormatDuration(dailyGoal))
+	fmt.Printf("  Progress:    %.0f%%\n", goalProgress)
+	fmt.Println()
+	fmt.Println("Streaks:")
+	fmt.Printf("  Current:     %d day(s)\n", streak)
+	fmt.Printf("  Longest:     %d day(s)\n", longestStreak)
+	fmt.Println()
+
+	if todayWork >= dailyGoal {
+		fmt.Println("Goal achieved!")
+	} else {
+		remaining := dailyGoal - todayWork
+		fmt.Printf("%s remaining to reach daily goal\n", config.FormatDuration(remaining))
+	}
+	fmt.Println()
 }
 
 func runExportCommand(args []string) {
@@ -87,6 +135,7 @@ func runConfigCommand(args []string) {
 	notifyFlag := configCmd.String("notify", "", "Enable/disable notifications (true/false)")
 	autoFlag := configCmd.String("auto", "", "Enable/disable auto-advance (true/false)")
 	pomodorosFlag := configCmd.Int("pomodoros", 0, "Set pomodoros before long break (e.g., 4)")
+	dailyGoalFlag := configCmd.Duration("daily-goal", 0, "Set daily focus time goal (e.g., 2h, 90m)")
 	resetFlag := configCmd.Bool("reset", false, "Reset to default configuration")
 
 	configCmd.Parse(args)
@@ -150,6 +199,10 @@ func runConfigCommand(args []string) {
 		cfg.PomodorosBeforeLongBreak = *pomodorosFlag
 		modified = true
 	}
+	if *dailyGoalFlag > 0 {
+		cfg.DailyGoal = *dailyGoalFlag
+		modified = true
+	}
 
 	if modified {
 		if err := config.Save(cfg); err != nil {
@@ -184,8 +237,12 @@ func printConfig(cfg config.Config) {
 	fmt.Printf("  auto:       %s\n", formatBool(cfg.AutoAdvance))
 	fmt.Printf("  pomodoros:  %d (before long break)\n", cfg.PomodorosBeforeLongBreak)
 	fmt.Println()
+	fmt.Println("Goals:")
+	fmt.Printf("  daily-goal: %s\n", config.FormatDuration(cfg.DailyGoal))
+	fmt.Println()
 	fmt.Println("Usage:")
 	fmt.Println("  workpulse config --work 30m")
+	fmt.Println("  workpulse config --daily-goal 2h")
 	fmt.Println("  workpulse config --sound=false")
 	fmt.Println("  workpulse config --reset")
 }
