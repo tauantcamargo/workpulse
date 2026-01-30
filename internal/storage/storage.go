@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -143,4 +144,57 @@ func (s *Storage) GetMonthSessions() []Session {
 	}
 
 	return sessions
+}
+
+func (s *Storage) ExportCSV(sessions []Session) string {
+	var result string
+	result = "mode,activity,started,duration_minutes,completed\n"
+
+	for _, session := range sessions {
+		activity := session.Activity
+		if activity == "" {
+			activity = "-"
+		}
+		durationMins := session.Duration.Minutes()
+		completed := "false"
+		if session.Completed {
+			completed = "true"
+		}
+		result += session.Mode + "," +
+			escapeCSV(activity) + "," +
+			session.Started.Format(time.RFC3339) + "," +
+			formatFloat(durationMins) + "," +
+			completed + "\n"
+	}
+
+	return result
+}
+
+func escapeCSV(s string) string {
+	needsQuotes := false
+	for _, c := range s {
+		if c == ',' || c == '"' || c == '\n' {
+			needsQuotes = true
+			break
+		}
+	}
+	if !needsQuotes {
+		return s
+	}
+	escaped := ""
+	for _, c := range s {
+		if c == '"' {
+			escaped += "\"\""
+		} else {
+			escaped += string(c)
+		}
+	}
+	return "\"" + escaped + "\""
+}
+
+func formatFloat(f float64) string {
+	if f == float64(int(f)) {
+		return fmt.Sprintf("%d", int(f))
+	}
+	return fmt.Sprintf("%.2f", f)
 }
