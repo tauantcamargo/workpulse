@@ -144,9 +144,13 @@ func RenderInputPrompt(prompt, input string) string {
 }
 
 func RenderDailySummary(stats map[string]int, totalMinutes int) string {
+	return RenderSummary(stats, totalMinutes, "Daily")
+}
+
+func RenderSummary(stats map[string]int, totalMinutes int, period string) string {
 	var b strings.Builder
 
-	header := SummaryHeaderStyle.Render("📊 Daily Summary")
+	header := SummaryHeaderStyle.Render("📊 " + period + " Summary")
 	b.WriteString(lipgloss.NewStyle().Align(lipgloss.Center).Width(45).Render(header))
 	b.WriteString("\n\n")
 
@@ -163,20 +167,39 @@ func RenderDailySummary(stats map[string]int, totalMinutes int) string {
 		{"video", "Video", "🎬"},
 	}
 
+	hasStats := false
 	for _, m := range modeOrder {
 		minutes := stats[m.key]
 		if minutes > 0 {
+			hasStats = true
 			line := m.emoji + " " + m.label + ": " + SummaryValueStyle.Render(formatMinutes(minutes))
 			b.WriteString(lipgloss.NewStyle().Align(lipgloss.Center).Width(45).Render(line))
 			b.WriteString("\n")
 		}
 	}
 
+	if !hasStats {
+		noDataLine := lipgloss.NewStyle().
+			Align(lipgloss.Center).
+			Width(45).
+			Foreground(Gray).
+			Italic(true).
+			Render("No sessions recorded")
+		b.WriteString(noDataLine)
+		b.WriteString("\n")
+	}
+
 	b.WriteString("\n")
 	totalLine := "⏰ Total: " + SummaryValueStyle.Render(formatMinutes(totalMinutes))
 	b.WriteString(lipgloss.NewStyle().Align(lipgloss.Center).Width(45).Render(totalLine))
 	b.WriteString("\n\n")
-	b.WriteString(lipgloss.NewStyle().Align(lipgloss.Center).Width(45).Foreground(Gray).Render("Press any key to return"))
+
+	helpLine := lipgloss.NewStyle().
+		Align(lipgloss.Center).
+		Width(45).
+		Foreground(Gray).
+		Render("[d] cycle period  [esc] return")
+	b.WriteString(helpLine)
 
 	return b.String()
 }
