@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -17,9 +18,11 @@ type ModeDuration struct {
 }
 
 type Config struct {
-	Durations    ModeDuration `json:"durations"`
-	SoundEnabled bool         `json:"sound_enabled"`
-	NotifyEnabled bool        `json:"notify_enabled"`
+	Durations               ModeDuration `json:"durations"`
+	SoundEnabled            bool         `json:"sound_enabled"`
+	NotifyEnabled           bool         `json:"notify_enabled"`
+	AutoAdvance             bool         `json:"auto_advance"`
+	PomodorosBeforeLongBreak int         `json:"pomodoros_before_long_break"`
 }
 
 func DefaultConfig() Config {
@@ -32,8 +35,10 @@ func DefaultConfig() Config {
 			Water:      2 * time.Minute,
 			Video:      20 * time.Minute,
 		},
-		SoundEnabled:  true,
-		NotifyEnabled: true,
+		SoundEnabled:             true,
+		NotifyEnabled:            true,
+		AutoAdvance:              false,
+		PomodorosBeforeLongBreak: 4,
 	}
 }
 
@@ -80,4 +85,29 @@ func Save(config Config) error {
 	}
 
 	return os.WriteFile(configPath, file, 0644)
+}
+
+func Path() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "~/.workpulse/config.json"
+	}
+	return filepath.Join(homeDir, ".workpulse", "config.json")
+}
+
+func FormatDuration(d time.Duration) string {
+	if d >= time.Hour {
+		hours := int(d.Hours())
+		mins := int(d.Minutes()) % 60
+		if mins == 0 {
+			return fmt.Sprintf("%dh", hours)
+		}
+		return fmt.Sprintf("%dh%dm", hours, mins)
+	}
+	mins := int(d.Minutes())
+	secs := int(d.Seconds()) % 60
+	if secs == 0 {
+		return fmt.Sprintf("%dm", mins)
+	}
+	return fmt.Sprintf("%dm%ds", mins, secs)
 }
