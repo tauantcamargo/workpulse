@@ -18,11 +18,12 @@ type ModeDuration struct {
 }
 
 type Config struct {
-	Durations               ModeDuration `json:"durations"`
-	SoundEnabled            bool         `json:"sound_enabled"`
-	NotifyEnabled           bool         `json:"notify_enabled"`
-	AutoAdvance             bool         `json:"auto_advance"`
-	PomodorosBeforeLongBreak int         `json:"pomodoros_before_long_break"`
+	Durations                ModeDuration  `json:"durations"`
+	SoundEnabled             bool          `json:"sound_enabled"`
+	NotifyEnabled            bool          `json:"notify_enabled"`
+	AutoAdvance              bool          `json:"auto_advance"`
+	PomodorosBeforeLongBreak int           `json:"pomodoros_before_long_break"`
+	DailyGoal                time.Duration `json:"daily_goal"`
 }
 
 func DefaultConfig() Config {
@@ -39,6 +40,7 @@ func DefaultConfig() Config {
 		NotifyEnabled:            true,
 		AutoAdvance:              false,
 		PomodorosBeforeLongBreak: 4,
+		DailyGoal:                2 * time.Hour,
 	}
 }
 
