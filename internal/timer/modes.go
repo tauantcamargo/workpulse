@@ -194,3 +194,19 @@ func (m *Modes) Next(current ModeType) Mode {
 		return m.modes[ModeWork]
 	}
 }
+
+func (m *Modes) NextWithPomodoro(current ModeType, pomodoroCount, pomodorosBeforeLongBreak int) Mode {
+	switch current {
+	case ModeWork:
+		if pomodoroCount >= pomodorosBeforeLongBreak {
+			return m.modes[ModeLongBreak]
+		}
+		return m.modes[ModeShortBreak]
+	case ModeShortBreak:
+		return m.modes[ModeWork]
+	case ModeLongBreak:
+		return m.modes[ModeWork]
+	default:
+		return m.modes[ModeWork]
+	}
+}
