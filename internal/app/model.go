@@ -15,6 +15,7 @@ const (
 
 type Model struct {
 	Timer        timer.Timer
+	Modes        *timer.Modes
 	ActivityName string
 	ViewState    ViewState
 	InputBuffer  string
@@ -23,10 +24,12 @@ type Model struct {
 	Height       int
 }
 
-func NewModel(activityName string, store *storage.Storage) Model {
-	mode := timer.GetMode(timer.ModeWork)
+func NewModel(activityName string, store *storage.Storage, durations timer.DurationConfig) Model {
+	modes := timer.NewModes(durations)
+	mode := modes.Get(timer.ModeWork)
 	return Model{
 		Timer:        timer.New(mode),
+		Modes:        modes,
 		ActivityName: activityName,
 		ViewState:    ViewTimer,
 		InputBuffer:  "",
@@ -39,6 +42,7 @@ func NewModel(activityName string, store *storage.Storage) Model {
 func (m Model) SetTimer(t timer.Timer) Model {
 	return Model{
 		Timer:        t,
+		Modes:        m.Modes,
 		ActivityName: m.ActivityName,
 		ViewState:    m.ViewState,
 		InputBuffer:  m.InputBuffer,
@@ -51,6 +55,7 @@ func (m Model) SetTimer(t timer.Timer) Model {
 func (m Model) SetActivityName(name string) Model {
 	return Model{
 		Timer:        m.Timer,
+		Modes:        m.Modes,
 		ActivityName: name,
 		ViewState:    m.ViewState,
 		InputBuffer:  m.InputBuffer,
@@ -63,6 +68,7 @@ func (m Model) SetActivityName(name string) Model {
 func (m Model) SetViewState(state ViewState) Model {
 	return Model{
 		Timer:        m.Timer,
+		Modes:        m.Modes,
 		ActivityName: m.ActivityName,
 		ViewState:    state,
 		InputBuffer:  m.InputBuffer,
@@ -75,6 +81,7 @@ func (m Model) SetViewState(state ViewState) Model {
 func (m Model) SetInputBuffer(input string) Model {
 	return Model{
 		Timer:        m.Timer,
+		Modes:        m.Modes,
 		ActivityName: m.ActivityName,
 		ViewState:    m.ViewState,
 		InputBuffer:  input,
@@ -87,6 +94,7 @@ func (m Model) SetInputBuffer(input string) Model {
 func (m Model) SetDimensions(width, height int) Model {
 	return Model{
 		Timer:        m.Timer,
+		Modes:        m.Modes,
 		ActivityName: m.ActivityName,
 		ViewState:    m.ViewState,
 		InputBuffer:  m.InputBuffer,
