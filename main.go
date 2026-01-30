@@ -4,16 +4,20 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/tauantcamargo/workpulse/internal/app"
 	"github.com/tauantcamargo/workpulse/internal/config"
+	"github.com/tauantcamargo/workpulse/internal/session"
 	"github.com/tauantcamargo/workpulse/internal/storage"
 	"github.com/tauantcamargo/workpulse/internal/timer"
 	"github.com/tauantcamargo/workpulse/internal/ui"
+	"github.com/tauantcamargo/workpulse/internal/update"
 )
 
 var (
@@ -33,6 +37,9 @@ func main() {
 			return
 		case "stats":
 			runStatsCommand()
+			return
+		case "update":
+			runUpdateCommand()
 			return
 		case "version", "--version", "-v":
 			fmt.Printf("workpulse %s (commit: %s, built: %s)\n", version, commit, date)
@@ -55,6 +62,7 @@ func printHelp() {
 	fmt.Println("  workpulse config             View/edit configuration")
 	fmt.Println("  workpulse stats              View productivity stats")
 	fmt.Println("  workpulse export             Export sessions to CSV")
+	fmt.Println("  workpulse update             Check for updates and install")
 	fmt.Println("  workpulse version            Show version information")
 	fmt.Println()
 	fmt.Println("Timer Flags:")
@@ -63,6 +71,11 @@ func printHelp() {
 	fmt.Println("  --short-break <duration>     Short break duration (e.g., 5m)")
 	fmt.Println("  --long-break <duration>      Long break duration (e.g., 15m)")
 	fmt.Println("  --auto                       Auto-advance to next mode")
+	fmt.Println()
+	fmt.Println("Session Planning:")
+	fmt.Println("  --session <duration>         Set total session goal (e.g., 2h, 90m)")
+	fmt.Println("  --ratio <work/break>         Set work/break ratio (e.g., 25/5)")
+	fmt.Println("  --preset <name>              Use preset ratio (standard, short-burst, deep-work)")
 	fmt.Println()
 	fmt.Println("For more information, visit: https://github.com/tauantcamargo/workpulse")
 }
@@ -312,6 +325,55 @@ func parseBool(s string) bool {
 	return b
 }
 
+func runUpdateCommand() {
+	checker := update.NewChecker(version)
+
+	fmt.Println("Checking for updates...")
+	fmt.Println()
+
+	info, err := checker.CheckSync()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error checking for updates: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Current version: %s\n", info.CurrentVersion.String())
+	fmt.Printf("Latest version:  %s\n", info.LatestVersion.String())
+	fmt.Println()
+
+	if !info.HasUpdate {
+		fmt.Println("You're already on the latest version!")
+		return
+	}
+
+	fmt.Println("Update available!")
+	fmt.Println()
+	fmt.Println("Installing update...")
+
+	cmd := exec.Command("sh", "-c", "curl -sSL https://raw.githubusercontent.com/tauantcamargo/workpulse/main/install.sh | sh")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error installing update: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println()
+	fmt.Println("Update complete! Restarting...")
+
+	binary, err := os.Executable()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error finding executable: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := syscall.Exec(binary, os.Args, os.Environ()); err != nil {
+		fmt.Fprintf(os.Stderr, "Error restarting: %v\n", err)
+		os.Exit(1)
+	}
+}
+
 func formatBool(b bool) string {
 	if b {
 		return "enabled"
@@ -349,6 +411,10 @@ func runTimerApp() {
 
 	autoAdvance := flag.Bool("auto", cfg.AutoAdvance, "Auto-advance to next mode after completion")
 
+	sessionDuration := flag.Duration("session", 0, "Total session goal (e.g., 2h, 90m)")
+	ratioFlag := flag.String("ratio", "", "Work/break ratio (e.g., 25/5)")
+	presetFlag := flag.String("preset", "", "Preset ratio (standard, short-burst, deep-work)")
+
 	flag.Parse()
 
 	activityName := *activityFlag
@@ -365,16 +431,55 @@ func runTimerApp() {
 		Video:      parseDuration(*videoDuration, defaults.Video),
 	}
 
+	var sessionPlan *session.Plan
+	if *sessionDuration > 0 {
+		ratio := session.RatioStandard
+
+		if *presetFlag != "" {
+			if preset, ok := session.GetPreset(*presetFlag); ok {
+				ratio = preset
+			} else {
+				fmt.Fprintf(os.Stderr, "Invalid preset: %s. Available: %s\n", *presetFlag, strings.Join(session.AvailablePresets(), ", "))
+				os.Exit(1)
+			}
+		} else if *ratioFlag != "" {
+			parsed, err := parseRatio(*ratioFlag)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Invalid ratio: %s (expected format: 25/5)\n", *ratioFlag)
+				os.Exit(1)
+			}
+			ratio = parsed
+		}
+
+		sessionPlan = session.NewPlan(*sessionDuration, ratio)
+		durations.Work = ratio.Work
+		durations.ShortBreak = ratio.Break
+	}
+
 	store, err := storage.New()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error initializing storage: %v\n", err)
 		os.Exit(1)
 	}
 
+	themeIndex := 0
+	for i, t := range ui.AvailableThemes() {
+		if t == themeName {
+			themeIndex = i
+			break
+		}
+	}
+
 	opts := app.Options{
-		ActivityName: activityName,
-		Durations:    durations,
-		AutoAdvance:  *autoAdvance,
+		ActivityName:   activityName,
+		Durations:      durations,
+		AutoAdvance:    *autoAdvance || sessionPlan != nil,
+		SessionPlan:    sessionPlan,
+		CurrentVersion: version,
+		SoundEnabled:   cfg.SoundEnabled,
+		NotifyEnabled:  cfg.NotifyEnabled,
+		ThemeIndex:     themeIndex,
+		DailyGoal:      cfg.DailyGoal,
 	}
 
 	model := app.NewModel(opts, store)
@@ -392,4 +497,26 @@ func parseDuration(d time.Duration, fallback time.Duration) time.Duration {
 		return fallback
 	}
 	return d
+}
+
+func parseRatio(s string) (session.Ratio, error) {
+	parts := strings.Split(s, "/")
+	if len(parts) != 2 {
+		return session.Ratio{}, fmt.Errorf("invalid ratio format")
+	}
+
+	work, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+	if err != nil || work <= 0 {
+		return session.Ratio{}, fmt.Errorf("invalid work duration")
+	}
+
+	breakDur, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+	if err != nil || breakDur <= 0 {
+		return session.Ratio{}, fmt.Errorf("invalid break duration")
+	}
+
+	return session.Ratio{
+		Work:  time.Duration(work) * time.Minute,
+		Break: time.Duration(breakDur) * time.Minute,
+	}, nil
 }
