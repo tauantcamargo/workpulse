@@ -26,6 +26,12 @@ workpulse --auto
 - Short Break completes → Work starts automatically
 - 2-second delay before advancing
 
+### Session Counter (Pomodoro Technique)
+- Displays "Pomodoro X/4" during work and break sessions
+- After 4 work sessions, suggests Long Break instead of Short Break
+- Counter resets after completing a Long Break
+- Traditional Pomodoro workflow built-in
+
 ### Activity Tracking
 - Prompt for activity name when starting work sessions
 - Pre-set activity via CLI: `workpulse -a "task name"`
@@ -64,7 +70,6 @@ workpulse --auto
 ## Roadmap
 
 ### In Progress
-- [ ] Session counter (Pomodoro X/4)
 - [ ] Weekly and monthly stats view
 
 ### Planned
